@@ -22,6 +22,7 @@ public class CompoundAdditionWorker implements ComputableWorker<UpdateableInt> {
   UpdateableInt workerTotal = new UpdateableInt();
   TextRecordParser rp;
   Text t = new Text();
+    
   
   @Override
   public UpdateableInt compute(List<UpdateableInt> records) {
@@ -64,5 +65,12 @@ public class CompoundAdditionWorker implements ComputableWorker<UpdateableInt> {
   public void setRecordParser(RecordParser r) {
     rp = (TextRecordParser)r;
   }
+
+  @Override
+  public boolean IncrementIteration() {
+    return false;
+  }
+
+
 }
 

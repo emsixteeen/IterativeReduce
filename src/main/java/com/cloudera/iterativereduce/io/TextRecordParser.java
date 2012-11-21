@@ -104,6 +104,7 @@ public class TextRecordParser<T extends Updateable> implements RecordParser<T> {
   public void reset() {
     // TODO Auto-generated method stub
     try {
+      this.hasMore = true;
       this.reader = input_format.getRecordReader(this.split, this.jobConf, voidReporter);
     } catch (IOException e) {
       // TODO Auto-generated catch block
@@ -116,6 +117,7 @@ public class TextRecordParser<T extends Updateable> implements RecordParser<T> {
     JobConf defaultConf = new JobConf();
     this.split = new FileSplit( new Path( file ), offset, length, defaultConf); 
 
+    this.hasMore = true;
     this.jobConf = defaultConf;
     //this.split = split;
     this.input_format = new TextInputFormat();

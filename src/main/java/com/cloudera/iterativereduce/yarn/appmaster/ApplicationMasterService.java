@@ -349,7 +349,7 @@ public class ApplicationMasterService<T extends Updateable> implements
           @Override
           public void run() {
             long startTime, endTime;
-
+                        
             startTime = System.currentTimeMillis();
             T result = computable.compute(workersUpdate.values(),
                 masterUpdates.values());

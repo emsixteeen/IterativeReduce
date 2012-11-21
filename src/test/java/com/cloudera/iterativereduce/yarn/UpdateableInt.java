@@ -10,6 +10,8 @@ import com.cloudera.iterativereduce.Updateable;
 public class UpdateableInt implements Updateable<Integer> {
   private int i = 0;
   private ByteBuffer b;
+  private int IterationNumber = 0;
+  private int BatchNumber = 0;
   
   @Override
   public ByteBuffer toBytes() {
@@ -43,4 +45,24 @@ public class UpdateableInt implements Updateable<Integer> {
   public void set(Integer t) {
     i = t;
   }
+  
+  @Override
+  public void setIterationState(int IterationNumber, int BatchNumber) {
+    
+    this.IterationNumber = IterationNumber;
+    this.BatchNumber = BatchNumber;
+    
+  }
+  
+  @Override
+  public int getGlobalIterationNumber() {
+    return this.IterationNumber;
+  }
+  
+  @Override
+  public int getGlobalBatchNumber() {
+    return this.BatchNumber;
+  }
+  
+  
 }

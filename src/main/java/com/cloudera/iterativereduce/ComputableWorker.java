@@ -14,4 +14,7 @@ public interface ComputableWorker<T extends Updateable> {
   void setRecordParser(RecordParser r);
   T getResults();
   void update(T t);
+  
+  public boolean IncrementIteration();
+  
 }

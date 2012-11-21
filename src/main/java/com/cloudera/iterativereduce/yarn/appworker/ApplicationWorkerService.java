@@ -147,109 +147,104 @@ public class ApplicationWorkerService<T extends Updateable> {
     int currentIteration = 0;
 
     computable.setRecordParser(recordParser);
+    
     for (currentIteration = 0; currentIteration < workerConf.getIterations(); currentIteration++) {
+    //while (doIterations) {  
       LOG.debug("Beginning iteration " + (currentIteration +1) + "/" + workerConf.getIterations());
       
       synchronized (currentState) {
         currentState = WorkerState.RUNNING;
       }
-
-      recordParser.reset();
-      int lastUpdate = 0;
-
-      while (recordParser.hasMoreRecords()) {
-        //records.add(recordParser.nextRecord());
-
-        countTotal++;
-        countCurrent++;
-
-        synchronized (progressCounters) {
-          progressCounters.put("countTotal", countTotal);
-          progressCounters.put("countCurrent", countCurrent);
-          progressCounters.put("currentIteration", currentIteration);
-        }
-
-//        if (countCurrent == workerConf.getBatchSize()
-//            || !recordParser.hasMoreRecords()) {
-/*          LOG.debug("Read "
-              + countCurrent
-              + " records, or there are no more records; computing batch result");
-*/
-//          T workerUpdate = computable.compute(records);
         
-        /**
-         * Run the compute side, let the user handle their own batch
-         * 
-         */
+        recordParser.reset();
+        int lastUpdate = 0;
         
-        long mWorkerStart = System.currentTimeMillis();
-        T workerUpdate = computable.compute();
-        
-        mWorkerExecutions++;
-        mWorkerTime += (System.currentTimeMillis() - mWorkerStart);
-        
-        /**
-         * send update to master from this worker
-         */
-        try {
-            synchronized (currentState) {
-              ByteBuffer bytes = workerUpdate.toBytes(); 
-              bytes.rewind();
-              
-              LOG.info("Sending an update to master");
-              currentState = WorkerState.UPDATE;
-              if (!masterService.update(workerId, bytes))
-                LOG.warn("The master rejected our update");
-              
-              mUpdates++;
+  
+  
+          countTotal++;
+          countCurrent++;
+  
+          synchronized (progressCounters) {
+            progressCounters.put("countTotal", countTotal);
+            progressCounters.put("countCurrent", countCurrent);
+            progressCounters.put("currentIteration", currentIteration);
+          }
+  
+          
+          /**
+           * Run the compute side, let the user handle their own batch
+           * 
+           */
+          
+          long mWorkerStart = System.currentTimeMillis();
+          T workerUpdate = computable.compute();
+          
+          mWorkerExecutions++;
+          mWorkerTime += (System.currentTimeMillis() - mWorkerStart);
+          
+          /**
+           * send update to master from this worker
+           */
+          try {
+              synchronized (currentState) {
+                ByteBuffer bytes = workerUpdate.toBytes(); 
+                bytes.rewind();
+                
+                LOG.info("Sending an update to master");
+                currentState = WorkerState.UPDATE;
+                if (!masterService.update(workerId, bytes))
+                  LOG.warn("The master rejected our update");
+                
+                mUpdates++;
+              }
+            } catch (AvroRemoteException ex) {
+              LOG.error("Unable to send update message to master", ex);
+              return -1;
             }
-          } catch (AvroRemoteException ex) {
-            LOG.error("Unable to send update message to master", ex);
-            return -1;
-          }
-
-          // Wait on master for an update
-          int nextUpdate;
-
-          try {
-            LOG.info("Completed a batch, waiting on an update from master");
-            nextUpdate = waitOnMasterUpdate(lastUpdate);
-            
-          } catch (InterruptedException ex) {
-            LOG.warn("Interrupted while waiting on master", ex);
-            return -1;
-          } catch (AvroRemoteException ex) {
-            LOG.error("Got an error while waiting on updates from master", ex);
-            return -1;
-          }
-
-          // Time to get an update
-          try {
-            ByteBuffer b = masterService.fetch(workerId, nextUpdate);
-            b.rewind();
-            T masterUpdate = updateable.newInstance();
-            masterUpdate.fromBytes(b);
-            computable.update(masterUpdate);
-            lastUpdate = nextUpdate;
-
-            LOG.debug("Requested to fetch an update from master"
-                + ", workerId=" + Utils.getWorkerId(workerId)
-                + ", requestedUpdatedId=" + nextUpdate
-                + ", responseLength=" + b.limit());
-            
-          } catch (AvroRemoteException ex) {
-            LOG.error("Got exception while fetching an update from master", ex);
-            return -1;
-          } catch (Exception ex) {
-            LOG.error("Got exception while processing update from master", ex);
-            return -1;
-          }
-
-          countCurrent = 0;
-          //records.clear();
-        //}
-      }
-    }
+  
+            // Wait on master for an update
+            int nextUpdate;
+  
+            try {
+              LOG.info("Completed a batch, waiting on an update from master");
+              nextUpdate = waitOnMasterUpdate(lastUpdate);
+              
+            } catch (InterruptedException ex) {
+              LOG.warn("Interrupted while waiting on master", ex);
+              return -1;
+            } catch (AvroRemoteException ex) {
+              LOG.error("Got an error while waiting on updates from master", ex);
+              return -1;
+            }
+  
+            // Time to get an update
+            try {
+              ByteBuffer b = masterService.fetch(workerId, nextUpdate);
+              b.rewind();
+              T masterUpdate = updateable.newInstance();
+              masterUpdate.fromBytes(b);
+              computable.update(masterUpdate);
+              lastUpdate = nextUpdate;
+  
+              LOG.debug("Requested to fetch an update from master"
+                  + ", workerId=" + Utils.getWorkerId(workerId)
+                  + ", requestedUpdatedId=" + nextUpdate
+                  + ", responseLength=" + b.limit());
+              
+            } catch (AvroRemoteException ex) {
+              LOG.error("Got exception while fetching an update from master", ex);
+              return -1;
+            } catch (Exception ex) {
+              LOG.error("Got exception while processing update from master", ex);
+              return -1;
+            }
+  
+            countCurrent = 0;
+        
+        computable.IncrementIteration();
+        
+        
+    } // while
 
     // Send a metrics report
     reportMetrics();
