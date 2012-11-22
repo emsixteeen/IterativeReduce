@@ -8,7 +8,7 @@ public interface Updateable<T> {
   void fromString(String s);
   T get();
   void set(T t);
-  void setIterationState(int IterationNumber, int BatchNumber);
-  int getGlobalIterationNumber();
-  int getGlobalBatchNumber();
+//  void setIterationState(int IterationNumber, int BatchNumber);
+//  int getGlobalIterationNumber();
+//  int getGlobalBatchNumber();
 }

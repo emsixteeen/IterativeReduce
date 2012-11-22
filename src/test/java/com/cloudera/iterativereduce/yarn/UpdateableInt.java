@@ -46,7 +46,7 @@ public class UpdateableInt implements Updateable<Integer> {
     i = t;
   }
   
-  @Override
+/*  @Override
   public void setIterationState(int IterationNumber, int BatchNumber) {
     
     this.IterationNumber = IterationNumber;
@@ -63,6 +63,6 @@ public class UpdateableInt implements Updateable<Integer> {
   public int getGlobalBatchNumber() {
     return this.BatchNumber;
   }
-  
+*/  
   
 }
