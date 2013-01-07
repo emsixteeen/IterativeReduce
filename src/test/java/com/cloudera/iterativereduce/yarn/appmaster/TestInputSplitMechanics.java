@@ -27,7 +27,9 @@ import com.cloudera.iterativereduce.yarn.appmaster.ApplicationMaster.Configurati
 import com.cloudera.iterativereduce.yarn.avro.generated.FileSplit;
 import com.cloudera.iterativereduce.yarn.avro.generated.StartupConfiguration;
 
-
+/**
+ * Testing some ideas to get multiple files working as input splits
+ */
 public class TestInputSplitMechanics {
 
   private static JobConf defaultConf = new JobConf();
@@ -370,7 +372,7 @@ public class TestInputSplitMechanics {
     }    
     
   }
-  
+/*  
   @Test 
   public void testInputPaths() throws IOException {
     
@@ -448,6 +450,7 @@ public class TestInputSplitMechanics {
     
     
   }
+  */
 /*  
   @Test
   public void testSplits() throws FileNotFoundException, IOException {
