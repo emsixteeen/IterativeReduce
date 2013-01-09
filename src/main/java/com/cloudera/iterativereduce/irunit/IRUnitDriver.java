@@ -122,22 +122,17 @@ public class IRUnitDriver<T> {
     this.app_properties_file = app_prop;
     this.props_to_copy = props_to_copy;
     
+    this.LoadPropertiesFile();
+    
   }
-
+  
   /**
-   * Setup components of the IR app run 1. load app.properties 2. msg arrays
-   * 3. calc local splits 4. setup master 5. setup workers based on number of
-   * splits
+   * Seperated this out from Setup() so the tester could set a property before using the properties in setup
    * 
    */
-  public void Setup() {
-
-    // ----- load the app.properties file
-
-    // String configFile = (args.length < 1) ?
-    // ConfigFields.DEFAULT_CONFIG_FILE : args[0];
+  private void LoadPropertiesFile() { 
+    
     this.props = new Properties();
-    // Configuration conf = getConf();
 
     try {
       FileInputStream fis = new FileInputStream(this.app_properties_file);
@@ -150,7 +145,40 @@ public class IRUnitDriver<T> {
       // throw ex; // TODO: be nice
       System.out.println(ex);
     }
+    
+    
+  }
+  
+  public void SetProperty( String Name, String Value ) {
+    
+    this.props.setProperty(Name, Value);
+    
+  }
 
+  /**
+   * Setup components of the IR app run 1. load app.properties 2. msg arrays
+   * 3. calc local splits 4. setup master 5. setup workers based on number of
+   * splits
+   * 
+   */
+  public void Setup() {
+
+    // ----- load the app.properties file
+/*
+    this.props = new Properties();
+
+    try {
+      FileInputStream fis = new FileInputStream(this.app_properties_file);
+      props.load(fis);
+      fis.close();
+    } catch (FileNotFoundException ex) {
+      // throw ex; // TODO: be nice
+      System.out.println(ex);
+    } catch (IOException ex) {
+      // throw ex; // TODO: be nice
+      System.out.println(ex);
+    }
+*/
     // setup msg arrays
 
     // calc splits
