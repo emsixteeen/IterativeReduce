@@ -27,6 +27,11 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.FileInputFormat;
+import org.apache.hadoop.mapred.InputFormat;
+import org.apache.hadoop.mapred.InputSplit;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -40,6 +45,8 @@ import org.apache.hadoop.yarn.api.records.NodeReport;
 import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.exceptions.YarnRemoteException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
+
+
 
 import com.cloudera.iterativereduce.ComputableMaster;
 import com.cloudera.iterativereduce.ConfigFields;
@@ -72,6 +79,8 @@ public class ApplicationMaster<T extends Updateable> extends Configured
   private ApplicationAttemptId appAttemptId;
   private String appName;
   private Properties props;
+  
+  private Class<?> inputFormatClass;
   
   private enum ReturnCode {
     OK(0), MASTER_ERROR(-1), CONTAINER_ERROR(1);
@@ -119,6 +128,30 @@ public class ApplicationMaster<T extends Updateable> extends Configured
         "200"));
     iterationCount = Integer.parseInt(props.getProperty(
         ConfigFields.APP_ITERATION_COUNT, "1"));
+    
+    String inputFormatClassString = props.getProperty( ConfigFields.INPUT_FORMAT_CLASS, ConfigFields.INPUT_FORMAT_CLASS_DEFAULT );
+    
+    LOG.debug( "Using Input Format: " + inputFormatClassString );
+    
+	Class<?> if_class = null;
+	try {
+		if_class = Class.forName( inputFormatClassString );
+	} catch (ClassNotFoundException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} 
+	
+	// need to check its a legit input format subclass
+	
+	if ( null == if_class ) {
+		this.inputFormatClass = TextInputFormat.class;
+	} else if (InputFormat.class.isAssignableFrom(if_class) ) {
+		LOG.debug( "good input format: " + inputFormatClassString );
+	} else {
+		LOG.debug( "bad input format: " + inputFormatClassString + ", defaulting to TextInputFormat" );
+		this.inputFormatClass = TextInputFormat.class;
+		// TODO: do we die here? what do we do?
+	}
 
     // Copy all properties into appConfig to be passed down to workers, TODO:
     // fix collection merging
@@ -172,13 +205,54 @@ public class ApplicationMaster<T extends Updateable> extends Configured
 
   // TODO: cache this!
   private Set<ConfigurationTuple> getConfigurationTuples() throws IOException {
-    Path p = new Path(props.getProperty(ConfigFields.APP_INPUT_PATH));
+    Path inputPath = new Path(props.getProperty(ConfigFields.APP_INPUT_PATH));
     FileSystem fs = FileSystem.get(conf);
-    FileStatus f = fs.getFileStatus(p);
-    BlockLocation[] bl = fs.getFileBlockLocations(p, 0, f.getLen());
+    FileStatus f = fs.getFileStatus( inputPath );
+    //BlockLocation[] bl = fs.getFileBlockLocations(p, 0, f.getLen());
     Set<ConfigurationTuple> configTuples = new HashSet<ConfigurationTuple>();
     int workerId = 0;
 
+	JobConf job = new JobConf( new Configuration() );
+
+	job.setInputFormat( (Class<? extends InputFormat>) this.inputFormatClass ); //TextInputFormat.class);
+	
+//	Path workDir = new Path( "/tmp/inputs/" );
+	
+	FileInputFormat.setInputPaths( job,  inputPath );
+    
+	InputSplit[] splits = 
+		       job.getInputFormat().getSplits( job, job.getNumMapTasks() );		
+
+//	for ( int splitIndex = 0; splitIndex < splits.length; splitIndex++ ) {
+
+//	}
+	
+
+	for ( InputSplit split : splits) {
+		
+		FileSplit convertedToMetronomeSplit = new FileSplit();
+		
+		org.apache.hadoop.mapred.FileSplit hadoopFileSplit = (org.apache.hadoop.mapred.FileSplit)split;
+		
+		
+		convertedToMetronomeSplit.length = hadoopFileSplit.getLength();
+		convertedToMetronomeSplit.offset = hadoopFileSplit.getStart();
+		convertedToMetronomeSplit.path = hadoopFileSplit.getPath().toString();
+		
+		  StartupConfiguration config = StartupConfiguration.newBuilder()
+			      .setBatchSize(batchSize).setIterations(iterationCount)
+			      .setOther(appConfig).setSplit( convertedToMetronomeSplit ).build();
+					  
+		  String wid = "worker-" + workerId;
+		  ConfigurationTuple tuple = new ConfigurationTuple( split.getLocations()[ 0 ], wid, config );
+		
+		  configTuples.add(tuple);
+		  workerId++;			
+		
+	}
+		
+    
+/*    
     for (BlockLocation b : bl) {
       FileSplit split = FileSplit.newBuilder().setPath(p.toString())
           .setOffset(b.getOffset()).setLength(b.getLength()).build();
@@ -194,9 +268,37 @@ public class ApplicationMaster<T extends Updateable> extends Configured
       configTuples.add(tuple);
       workerId++;
     }
+    */
 
     return configTuples;
   }
+  
+  private Set<ConfigurationTuple> getConfigurationTuples_old() throws IOException {
+	    Path p = new Path(props.getProperty(ConfigFields.APP_INPUT_PATH));
+	    FileSystem fs = FileSystem.get(conf);
+	    FileStatus f = fs.getFileStatus(p);
+	    BlockLocation[] bl = fs.getFileBlockLocations(p, 0, f.getLen());
+	    Set<ConfigurationTuple> configTuples = new HashSet<ConfigurationTuple>();
+	    int workerId = 0;
+
+	    for (BlockLocation b : bl) {
+	      FileSplit split = FileSplit.newBuilder().setPath(p.toString())
+	          .setOffset(b.getOffset()).setLength(b.getLength()).build();
+
+	      StartupConfiguration config = StartupConfiguration.newBuilder()
+	          .setBatchSize(batchSize).setIterations(iterationCount)
+	          .setOther(appConfig).setSplit(split).build();
+
+	      String wid = "worker-" + workerId;
+	      ConfigurationTuple tuple = new ConfigurationTuple(b.getHosts()[0], wid,
+	          config);
+
+	      configTuples.add(tuple);
+	      workerId++;
+	    }
+
+	    return configTuples;
+	  }  
 
   private Map<WorkerId, StartupConfiguration> getMasterStartupConfiguration(
       Set<ConfigurationTuple> configTuples) {

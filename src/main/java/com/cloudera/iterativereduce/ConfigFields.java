@@ -30,6 +30,9 @@ public class ConfigFields {
   public static final String YARN_WORKER_ARGS = "yarn.worker.args";
   
   public static final String CLASSPATH_EXTRA ="app.classpath.extra";
+
+  public static final String INPUT_FORMAT_CLASS = "app.inputformat.classname";
+  public static final String INPUT_FORMAT_CLASS_DEFAULT = "org.apache.hadoop.mapred.TextInputFormat";  
   
   public static void validateConfig(Properties props) throws IllegalArgumentException {
     StringBuffer errors = new StringBuffer();
