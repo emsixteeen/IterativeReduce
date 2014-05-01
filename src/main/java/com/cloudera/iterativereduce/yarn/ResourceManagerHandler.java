@@ -25,7 +25,8 @@ import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationRequest;
-import org.apache.hadoop.yarn.api.records.AMResponse;
+//import org.apache.hadoop.yarn.api.records.AMResponse;
+//import org.apache.hadoop.yarn.api.records.impl;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
@@ -202,7 +203,7 @@ public class ResourceManagerHandler {
     
     return response;
   }
-  
+/*  
   public AMResponse allocateRequest (
       List<ResourceRequest> requestedContainers,
       List<ContainerId> releasedContainers) throws YarnRemoteException {
@@ -232,6 +233,8 @@ public class ResourceManagerHandler {
 
     AllocateResponse response = amResourceManager.allocate(request);
     
+    response.getAllocatedContainers()
+    
     LOG.debug("Got an allocation response, "
         + ", responseId=" + response.getAMResponse().getResponseId()
         + ", numClusterNodes=" + response.getNumClusterNodes()
@@ -243,6 +246,61 @@ public class ResourceManagerHandler {
     
     return response.getAMResponse();
   }
+*/
+  /**
+   * Changed the return type to AllocateResponse which use to hold a reference to 
+   * AMResponse. 
+   * 
+   * AMResponse seems to have disappeared in CDH 4.6
+   * 
+   * @param requestedContainers
+   * @param releasedContainers
+   * @return
+   * @throws YarnRemoteException
+   */
+  
+  public AllocateResponse allocateRequest (
+	      List<ResourceRequest> requestedContainers,
+	      List<ContainerId> releasedContainers) throws YarnRemoteException {
+	    
+	    if (amResourceManager == null)
+	      throw new IllegalStateException(
+	          "Cannot send allocation request before connecting to the resource manager!");
+
+	    LOG.info("Sending allocation request"
+	        + ", requestedSize=" + requestedContainers.size()
+	        + ", releasedSize=" + releasedContainers.size());
+	    
+	    for (ResourceRequest req : requestedContainers)
+	      LOG.info("Requesting container, host=" + req.getHostName() 
+	          + ", amount=" + req.getNumContainers()
+	          + ", memory=" + req.getCapability().getMemory()
+	          + ", priority=" + req.getPriority().getPriority());
+	    
+	    for (ContainerId rel : releasedContainers)
+	      LOG.info("Releasing container: " + rel.getId());
+	    
+	    AllocateRequest request = Records.newRecord(AllocateRequest.class);
+	    request.setResponseId(rmRequestId.incrementAndGet());
+	    request.setApplicationAttemptId(appAttemptId);
+	    request.addAllAsks(requestedContainers);
+	    request.addAllReleases(releasedContainers);
+
+	    AllocateResponse response = amResourceManager.allocate(request);
+	    
+	    //response.getAllocatedContainers()
+	    
+	    LOG.debug("Got an allocation response, "
+	        + ", responseId=" + response.getResponseId()
+	        + ", numClusterNodes=" + response.getNumClusterNodes()
+	        + ", headroom=" + response.getAvailableResources().getMemory()
+	        + ", allocatedSize=" + response.getAllocatedContainers().size()
+	        + ", updatedNodes=" + response.getUpdatedNodes().size()
+	        + ", reboot=" + response.getReboot()
+	        + ", completedSize=" + response.getCompletedContainersStatuses().size());
+	    
+	    return response;
+	  }  
   
   public void finishApplication(String diagnostics,
       FinalApplicationStatus finishState) throws YarnRemoteException {
