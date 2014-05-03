@@ -30,8 +30,16 @@ public class Client extends Configured implements Tool {
 
   private static final Log LOG = LogFactory.getLog(Client.class);
   
+  /**
+   * TODO: consider the scenarios where we dont get enough containers 
+   * - we need to re-submit the job til we get the containers alloc'd
+   * 
+   */
   @Override
   public int run(String[] args) throws Exception {
+	  
+	  System.out.println("IR: Client.run() [start]");
+	  
     if (args.length < 1)
       LOG.info("No configuration file specified, using default ("
           + ConfigFields.DEFAULT_CONFIG_FILE + ")");
@@ -107,12 +115,18 @@ public class Client extends Configured implements Tool {
         localResources, commands,
         Integer.parseInt(props.getProperty(ConfigFields.YARN_MEMORY, "512")));    
 
+    /*
+     * TODO:
+     * - look at updating this code region to make sure job is submitted!
+     * 
+     */
+    
     // Wait for app to complete
     while (true) {
       Thread.sleep(2000);
       
       ApplicationReport report = rmHandler.getApplicationReport(appId);
-      LOG.info("Got applicaton report for"
+      LOG.info("IR: Got applicaton report for"
           + ", appId=" + appId.getId()
           + ", state=" + report.getYarnApplicationState().toString()
           + ", amDiag=" + report.getDiagnostics()

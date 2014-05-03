@@ -191,13 +191,15 @@ public class Utils {
     FileSystem fs = FileSystem.get(conf);
     Path fsPath;
     FileStatus fstat;
-    
+        
     // Convert to local resource list
     for (String resource : resources) {
       try {
         fsPath = new Path(resource);
         fstat = fs.getFileStatus(fsPath); 
         LOG.debug("Processing local resource=" + fstat.getPath());
+        
+        System.out.println("IR: Utils > Converting to local resource: " + fstat.getPath() );
         
         LocalResource localResource = Records.newRecord(LocalResource.class);
         localResource.setResource(ConverterUtils.getYarnUrlFromPath(fstat.getPath()));

@@ -25,6 +25,7 @@ import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationRequest;
+import org.apache.hadoop.yarn.api.protocolrecords.SubmitApplicationResponse;
 //import org.apache.hadoop.yarn.api.records.AMResponse;
 //import org.apache.hadoop.yarn.api.records.impl;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -127,6 +128,11 @@ public class ResourceManagerHandler {
     prio.setPriority(0);
     appCtx.setPriority(prio);
 
+    for (Map.Entry<String, LocalResource> entry : localResources.entrySet())
+    {
+        System.out.println("IR:RM: " + entry.getKey() + "/" + entry.getValue().getResource());
+    }    
+    
     // Launch ctx
     ContainerLaunchContext containerCtx = Records.newRecord(ContainerLaunchContext.class);
     containerCtx.setLocalResources(localResources);
@@ -144,6 +150,8 @@ public class ResourceManagerHandler {
     
     LOG.info("Submitting application to ASM");
     clientResourceManager.submitApplication(submitReq);
+    
+
     
     // Don't return anything, ASM#submit returns an empty response
   }
