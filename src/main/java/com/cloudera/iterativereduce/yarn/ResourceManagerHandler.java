@@ -138,6 +138,7 @@ public class ResourceManagerHandler {
     containerCtx.setLocalResources(localResources);
     containerCtx.setCommands(commands);
     containerCtx.setEnvironment(env);
+    containerCtx.setUser(UserGroupInformation.getCurrentUser().getShortUserName());
 
     Resource capability = Records.newRecord(Resource.class);
     capability.setMemory(memory);
