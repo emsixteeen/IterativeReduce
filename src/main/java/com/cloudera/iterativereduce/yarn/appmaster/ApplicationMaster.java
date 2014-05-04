@@ -236,26 +236,39 @@ public class ApplicationMaster<T extends Updateable> extends Configured
 
 	for ( InputSplit split : splits) {
 		
+
+		
 		FileSplit convertedToMetronomeSplit = new FileSplit();
 		
 		org.apache.hadoop.mapred.FileSplit hadoopFileSplit = (org.apache.hadoop.mapred.FileSplit)split;
+
+		if (hadoopFileSplit.getLength() - hadoopFileSplit.getStart() > 0) {
+			
+			convertedToMetronomeSplit.length = hadoopFileSplit.getLength();
+			convertedToMetronomeSplit.offset = hadoopFileSplit.getStart();
+			convertedToMetronomeSplit.path = hadoopFileSplit.getPath().toString();
+			
+			  StartupConfiguration config = StartupConfiguration.newBuilder()
+				      .setBatchSize(batchSize).setIterations(iterationCount)
+				      .setOther(appConfig).setSplit( convertedToMetronomeSplit ).build();
+						  
+			  String wid = "worker-" + workerId;
+			  ConfigurationTuple tuple = new ConfigurationTuple( split.getLocations()[ 0 ], wid, config );
+			
+			  configTuples.add(tuple);
+			  workerId++;	
+			  
+			  System.out.println( "IR_AM_worker: " + wid + " added split: " + convertedToMetronomeSplit.toString() );
+			  
+		} else {
+			System.out.println( "IR_AM: Culled out 0 length Split: " + convertedToMetronomeSplit.toString() );
+		}
 		
 		
-		convertedToMetronomeSplit.length = hadoopFileSplit.getLength();
-		convertedToMetronomeSplit.offset = hadoopFileSplit.getStart();
-		convertedToMetronomeSplit.path = hadoopFileSplit.getPath().toString();
-		
-		  StartupConfiguration config = StartupConfiguration.newBuilder()
-			      .setBatchSize(batchSize).setIterations(iterationCount)
-			      .setOther(appConfig).setSplit( convertedToMetronomeSplit ).build();
-					  
-		  String wid = "worker-" + workerId;
-		  ConfigurationTuple tuple = new ConfigurationTuple( split.getLocations()[ 0 ], wid, config );
-		
-		  configTuples.add(tuple);
-		  workerId++;			
 		
 	}
+	
+	System.out.println( "Total Splits/Workers: " + configTuples.size() );
 		
     
 /*    
