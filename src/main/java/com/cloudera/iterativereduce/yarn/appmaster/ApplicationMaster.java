@@ -132,6 +132,7 @@ public class ApplicationMaster<T extends Updateable> extends Configured
     String inputFormatClassString = props.getProperty( ConfigFields.INPUT_FORMAT_CLASS, ConfigFields.INPUT_FORMAT_CLASS_DEFAULT );
     
     LOG.debug( "Using Input Format: " + inputFormatClassString );
+    System.out.println( "IR:AppMaster > Using Input Format: " + inputFormatClassString );
     
 	Class<?> if_class = null;
 	try {
@@ -144,9 +145,14 @@ public class ApplicationMaster<T extends Updateable> extends Configured
 	// need to check its a legit input format subclass
 	
 	if ( null == if_class ) {
+		
 		this.inputFormatClass = TextInputFormat.class;
+		
 	} else if (InputFormat.class.isAssignableFrom(if_class) ) {
+		
 		LOG.debug( "good input format: " + inputFormatClassString );
+		this.inputFormatClass = if_class;
+		
 	} else {
 		LOG.debug( "bad input format: " + inputFormatClassString + ", defaulting to TextInputFormat" );
 		this.inputFormatClass = TextInputFormat.class;
