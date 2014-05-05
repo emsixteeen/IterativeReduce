@@ -38,7 +38,7 @@ public class Client extends Configured implements Tool {
   @Override
   public int run(String[] args) throws Exception {
 	  
-	  System.out.println("IR: Client.run() [start]");
+	  //System.out.println("IR: Client.run() [start]");
 	  
     if (args.length < 1)
       LOG.info("No configuration file specified, using default ("
@@ -126,18 +126,20 @@ public class Client extends Configured implements Tool {
       Thread.sleep(2000);
       
       ApplicationReport report = rmHandler.getApplicationReport(appId);
-      LOG.info("IR: Got applicaton report for"
-          + ", appId=" + appId.getId()
+      LOG.info("IterativeReduce report: "
+          + " appId=" + appId.getId()
           + ", state=" + report.getYarnApplicationState().toString()
-          + ", amDiag=" + report.getDiagnostics()
-          + ", masterHost=" + report.getHost()
-          + ", masterRpcPort=" + report.getRpcPort()
-          + ", queue=" + report.getQueue()
+      //    + ", amDiag=" + report.getDiagnostics()
+      //    + ", masterHost=" + report.getHost()
+      //    + ", masterRpcPort=" + report.getRpcPort()
+      //    + ", queue=" + report.getQueue()
           + ", startTime=" + report.getStartTime()
-          + ", clientToken=" + report.getClientToken() 
-          + ", finalState=" + report.getFinalApplicationStatus().toString()
-          + ", trackingUrl=" + report.getTrackingUrl()
+      //    + ", clientToken=" + report.getClientToken() 
+      //    + ", finalState=" + report.getFinalApplicationStatus().toString()
+      //    + ", trackingUrl=" + report.getTrackingUrl()
           + ", user=" + report.getUser());
+      
+      //report.getDiagnostics()
 
       if (YarnApplicationState.FINISHED == report.getYarnApplicationState()) {
         LOG.info("Application finished in " + (System.currentTimeMillis() - startTime) + "ms");

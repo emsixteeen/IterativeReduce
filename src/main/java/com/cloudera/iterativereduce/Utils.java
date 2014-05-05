@@ -199,7 +199,7 @@ public class Utils {
         fstat = fs.getFileStatus(fsPath); 
         LOG.debug("Processing local resource=" + fstat.getPath());
         
-        System.out.println("IR: Utils > Converting to local resource: " + fstat.getPath() );
+        //System.out.println("IR: Utils > Converting to local resource: " + fstat.getPath() );
         
         LocalResource localResource = Records.newRecord(LocalResource.class);
         localResource.setResource(ConverterUtils.getYarnUrlFromPath(fstat.getPath()));
@@ -229,6 +229,7 @@ public class Utils {
         env.put(envname, envvalue);
         
         LOG.debug("Adding " + envname + "=" + envvalue + " to envrionment");
+        
       }
     }
     
@@ -256,6 +257,10 @@ public class Utils {
     // Generic
     for (String c : conf.get(YarnConfiguration.YARN_APPLICATION_CLASSPATH)
         .split(",")) {
+    	
+    	
+    	System.out.println( "YARN_APPLICATION_CLASSPATH: " + c );
+    	
       sb.append(c.trim());
       sb.append(':');
     }
@@ -263,6 +268,8 @@ public class Utils {
     if (props.get(ConfigFields.CLASSPATH_EXTRA) != null) {
       sb.append(props.get(ConfigFields.CLASSPATH_EXTRA)).append(":");
     }
+    
+    System.out.println("\nIR-CLIENT: Adding CLASSPATH=" + sb.toString() + " to environment\n");
     
     LOG.debug("Adding CLASSPATH=" + sb.toString() + " to environment");
     env.put("CLASSPATH", sb.toString());

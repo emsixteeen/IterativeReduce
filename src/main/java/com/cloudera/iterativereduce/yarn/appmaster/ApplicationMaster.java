@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
@@ -577,6 +579,15 @@ public class ApplicationMaster<T extends Updateable> extends Configured
 
     final int numContainers = configTuples.size();
 
+    /*
+     * 
+     * 
+     * TODO: fix this so we try N times to get enough containers!
+     * 
+     * 
+     * 
+     * 
+     */
     // Make sure we got all our containers, or else bail
     if (allocatedContainers.size() < numContainers) {
       LOG.info("Unable to get requried number of containers, will not continue"
@@ -707,6 +718,9 @@ public class ApplicationMaster<T extends Updateable> extends Configured
     executor.shutdown();
 
     if (masterExit == 0) {
+    	
+    	
+    	/*
       // Write results to file
       Path out = new Path(props.getProperty(ConfigFields.APP_OUTPUT_PATH));
       FileSystem fs = out.getFileSystem(conf);
@@ -717,6 +731,60 @@ public class ApplicationMaster<T extends Updateable> extends Configured
   
       fos.flush();
       fos.close();
+      
+      */
+    	
+    	//Path out = new Path(props.getProperty(ConfigFields.APP_OUTPUT_PATH));
+    	
+    	String impersonatedUser = System.getenv("USER");
+    	
+    	UserGroupInformation ugi = UserGroupInformation.createRemoteUser(impersonatedUser);
+    			//UserGroupInformation.createProxyUser(impersonatedUser, UserGroupInformation.getLoginUser());
+        ugi.doAs(new PrivilegedExceptionAction<Void>() {
+          public Void run() {
+
+        	  Path out = new Path(props.getProperty(ConfigFields.APP_OUTPUT_PATH));
+              FileSystem fs;
+			try {
+				fs = out.getFileSystem(conf);
+
+	              FSDataOutputStream fos = fs.create(out);    
+	              LOG.info("Writing master results to " + out.toString());
+	        	  
+	              masterComputable.complete(fos);
+				
+	              fos.flush();
+	              fos.close();
+	              
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        	  
+        	  
+        	  
+			return null;
+
+            //FileSystem fs = FileSystem.get(conf);
+            //fs.mkdir( out ); 
+          }
+        });
+            	
+ 
+    	/*
+    	System.out.println( "Here we would try to write to " + out.toString() );
+    	System.out.println( "As current user: " + UserGroupInformation.getCurrentUser().getShortUserName() );
+    	System.out.println( "As login user: " + UserGroupInformation.getLoginUser().getShortUserName() );
+    	
+    	System.out.println( "Env Var User: " + System.getenv("USER") );
+    	*/
+    	//System.out.println( "Ideally we'd be user: " + this.props.getProperty(  ) );
+    	
+//    	for (Map.Entry<String, String> entry : this.conf) {
+ //           System.out.println("ApplicationMaster->Conf: " + entry.getKey() + " = " + entry.getValue());
+   //     }    	
+    	
     } else {
       LOG.warn("Not writing master results, as the master came back with errors!");
     }

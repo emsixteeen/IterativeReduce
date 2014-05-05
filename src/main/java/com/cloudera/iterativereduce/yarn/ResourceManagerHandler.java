@@ -123,15 +123,24 @@ public class ResourceManagerHandler {
     appCtx.setApplicationName(appName);
     appCtx.setQueue("default");
     appCtx.setUser(UserGroupInformation.getCurrentUser().getShortUserName());
+    
+    System.out.println( "Based on my current user I am: " + UserGroupInformation.getCurrentUser().getShortUserName() );
         
     Priority prio = Records.newRecord(Priority.class);
     prio.setPriority(0);
     appCtx.setPriority(prio);
-
+/*
     for (Map.Entry<String, LocalResource> entry : localResources.entrySet())
     {
         System.out.println("IR:RM: " + entry.getKey() + "/" + entry.getValue().getResource());
     }    
+ */   
+
+    for (Map.Entry<String, String> entry : env.entrySet())
+    {
+        System.out.println("IR:ResourceManager -> Env vars: " + entry.getKey() + "/" + entry.getValue() );
+    }    
+
     
     // Launch ctx
     ContainerLaunchContext containerCtx = Records.newRecord(ContainerLaunchContext.class);
@@ -139,7 +148,7 @@ public class ResourceManagerHandler {
     containerCtx.setCommands(commands);
     containerCtx.setEnvironment(env);
     containerCtx.setUser(UserGroupInformation.getCurrentUser().getShortUserName());
-
+    
     Resource capability = Records.newRecord(Resource.class);
     capability.setMemory(memory);
     containerCtx.setResource(capability);
