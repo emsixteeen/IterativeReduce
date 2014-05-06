@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -121,6 +122,10 @@ public class Client extends Configured implements Tool {
      * 
      */
     
+	StopWatch watch = new StopWatch();
+	watch.start();
+    
+    
     // Wait for app to complete
     while (true) {
       Thread.sleep(2000);
@@ -128,16 +133,17 @@ public class Client extends Configured implements Tool {
       ApplicationReport report = rmHandler.getApplicationReport(appId);
       LOG.info("IterativeReduce report: "
           + " appId=" + appId.getId()
-          + ", state=" + report.getYarnApplicationState().toString()
+          + ", state: " + report.getYarnApplicationState().toString()
       //    + ", amDiag=" + report.getDiagnostics()
       //    + ", masterHost=" + report.getHost()
       //    + ", masterRpcPort=" + report.getRpcPort()
       //    + ", queue=" + report.getQueue()
-          + ", startTime=" + report.getStartTime()
+      //    + ", startTime=" + report.getStartTime()
+          + ", Running Time: " + watch.toString() );
       //    + ", clientToken=" + report.getClientToken() 
       //    + ", finalState=" + report.getFinalApplicationStatus().toString()
       //    + ", trackingUrl=" + report.getTrackingUrl()
-          + ", user=" + report.getUser());
+      //    + ", user=" + report.getUser());
       
       //report.getDiagnostics()
 
@@ -157,7 +163,15 @@ public class Client extends Configured implements Tool {
         LOG.info("Application completed with a failed or killed state: " + report.getDiagnostics());
         return -1; 
       }
+      
+      
+      
     }
+    
+    
+    
+    
+    
   }
   
   public static void main(String[] args) throws Exception {
