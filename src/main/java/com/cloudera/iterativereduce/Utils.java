@@ -254,6 +254,57 @@ public class Utils {
       sb.append("./").append(path).append(":");
     }
     
+/*
+ * From the yarn bash script
+ * 
+ * 1. pickup env var $YARN_HOME
+ * 
+ * 
+ * 
+
+CLASSPATH=${CLASSPATH}:$YARN_HOME/${YARN_DIR}/*
+CLASSPATH=${CLASSPATH}:$YARN_HOME/${YARN_LIB_JARS_DIR}/*
+
+$HADOOP_CONF_DIR,
+$HADOOP_COMMON_HOME/,
+$HADOOP_COMMON_HOME/lib/,
+$HADOOP_HDFS_HOME/,
+$HADOOP_HDFS_HOME/lib/,
+$HADOOP_MAPRED_HOME/,
+$HADOOP_MAPRED_HOME/lib/,
+$YARN_HOME/,
+$YARN_HOME/lib/* 
+
+ * 
+ */
+    
+    //StringBuffer sb_test = new StringBuffer("${CLASSPATH}:./:");
+    
+    String[] env_vars = { "HADOOP_COMMON_HOME", "HADOOP_HDFS_HOME", "HADOOP_MAPRED_HOME", "YARN_HOME" };
+
+    //sb_test.append( System.getenv( "HADOOP_CONF_DIR" ).trim() );
+    sb.append( "$HADOOP_CONF_DIR" );
+    sb.append(':');
+    
+    
+    for (String envVar : env_vars) {
+	
+//	    if ( null != System.getenv( envVar ) ) {
+
+	    	//sb_test.append( System.getenv( envVar ).trim() );
+	    	sb.append( "$" + envVar + "/*" );
+	    	sb.append(':');
+
+	    	sb.append( "$" + envVar + "/lib/*" );
+	    	sb.append(':');
+	    	
+	    	
+//	    }
+	    
+    }
+    
+    //System.out.println( "test classpath: " + sb_test.toString() );
+    /*
     // Generic
     for (String c : conf.get(YarnConfiguration.YARN_APPLICATION_CLASSPATH)
         .split(",")) {
@@ -264,12 +315,12 @@ public class Utils {
       sb.append(c.trim());
       sb.append(':');
     }
-
+*/
     if (props.get(ConfigFields.CLASSPATH_EXTRA) != null) {
       sb.append(props.get(ConfigFields.CLASSPATH_EXTRA)).append(":");
     }
     
-    System.out.println("\nIR-CLIENT: Adding CLASSPATH=" + sb.toString() + " to environment\n");
+    //System.out.println("\nIR-CLIENT: Adding CLASSPATH=" + sb.toString() + " to environment\n");
     
     LOG.debug("Adding CLASSPATH=" + sb.toString() + " to environment");
     env.put("CLASSPATH", sb.toString());

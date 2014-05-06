@@ -124,7 +124,7 @@ public class ResourceManagerHandler {
     appCtx.setQueue("default");
     appCtx.setUser(UserGroupInformation.getCurrentUser().getShortUserName());
     
-    System.out.println( "Based on my current user I am: " + UserGroupInformation.getCurrentUser().getShortUserName() );
+    //System.out.println( "Based on my current user I am: " + UserGroupInformation.getCurrentUser().getShortUserName() );
         
     Priority prio = Records.newRecord(Priority.class);
     prio.setPriority(0);
@@ -135,12 +135,12 @@ public class ResourceManagerHandler {
         System.out.println("IR:RM: " + entry.getKey() + "/" + entry.getValue().getResource());
     }    
  */   
-
+/*
     for (Map.Entry<String, String> entry : env.entrySet())
     {
         System.out.println("IR:ResourceManager -> Env vars: " + entry.getKey() + "/" + entry.getValue() );
     }    
-
+*/
     
     // Launch ctx
     ContainerLaunchContext containerCtx = Records.newRecord(ContainerLaunchContext.class);
