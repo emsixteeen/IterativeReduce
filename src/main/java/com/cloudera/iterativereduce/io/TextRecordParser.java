@@ -81,8 +81,18 @@ public class TextRecordParser<T extends Updateable> implements RecordParser<T> {
 
   @Override
   public boolean hasMoreRecords() {
-    // TODO Auto-generated method stub
-    return hasMore;
+	  
+  //  return hasMore;
+	  try {
+		if ( this.reader.getProgress() < 1.0 ) {
+			  return true;
+		  }
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+	  
+	  return false;
   }
 
   @Override
