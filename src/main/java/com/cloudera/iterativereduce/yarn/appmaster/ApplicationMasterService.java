@@ -86,6 +86,7 @@ public class ApplicationMasterService<T extends Updateable> implements
   private long mMasterTime;
   private long mMasterExecutions;
   private long mUpdates;
+  private boolean earlyTerminationDetected = false;
 
   public ApplicationMasterService(InetSocketAddress masterAddr,
       Map<WorkerId, StartupConfiguration> workers,
@@ -361,6 +362,9 @@ public class ApplicationMasterService<T extends Updateable> implements
             mMasterExecutions++;
             mMasterTime += (endTime - startTime);
 
+            // check master computable to see if it wants to end early
+            //earlyTerminationDetected = computable.checkEarlyTerminationCondition();
+            
             synchronized (masterUpdates) {
               currentUpdateId++;
               masterUpdates.put(currentUpdateId, result);

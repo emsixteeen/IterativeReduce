@@ -108,7 +108,8 @@ public class ApplicationMaster<T extends Updateable> extends Configured
   public ApplicationMaster(int port, ComputableMaster<T> computableMaster,
       Class<T> updatable) throws FileNotFoundException, IOException {
 
-    masterHost = InetAddress.getLocalHost().getHostName();
+    //masterHost = InetAddress.getLocalHost().getHostName();
+	masterHost = InetAddress.getLocalHost().getCanonicalHostName();
     masterPort = port;
     masterAddr = new InetSocketAddress(masterHost, masterPort);
     masterComputable = computableMaster;

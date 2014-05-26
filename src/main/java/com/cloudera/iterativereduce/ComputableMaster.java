@@ -12,4 +12,5 @@ public interface ComputableMaster<T extends Updateable> {
   void complete(DataOutputStream out) throws IOException;
   T compute(Collection<T> workerUpdates, Collection<T> masterUpdates);
   T getResults();
+//  boolean checkEarlyTerminationCondition();
 }
