@@ -145,6 +145,7 @@ public class ApplicationWorkerService<T extends Updateable> {
     int countTotal = 0;
     int countCurrent = 0;
     int currentIteration = 0;
+    int lastUpdate = 0;
 
     computable.setRecordParser(recordParser);
     
@@ -157,7 +158,7 @@ public class ApplicationWorkerService<T extends Updateable> {
       }
         
         recordParser.reset();
-        int lastUpdate = 0;
+        //int lastUpdate = 0;
         
   
   
@@ -226,9 +227,10 @@ public class ApplicationWorkerService<T extends Updateable> {
               computable.update(masterUpdate);
               lastUpdate = nextUpdate;
   
-              LOG.debug("Requested to fetch an update from master"
+              LOG.info("Requested to fetch an update from master"
                   + ", workerId=" + Utils.getWorkerId(workerId)
                   + ", requestedUpdatedId=" + nextUpdate
+                  + ", lastUpdate=" + lastUpdate
                   + ", responseLength=" + b.limit());
               
             } catch (AvroRemoteException ex) {
@@ -345,7 +347,7 @@ public class ApplicationWorkerService<T extends Updateable> {
       Thread.sleep(updateSleepTime);
       waitingFor = System.currentTimeMillis() - waitStarted;
 
-      LOG.debug("Waiting on update from master for " + waitingFor + "ms");
+      LOG.info("Waiting on update from master with lastID " + lastUpdate + " for " + waitingFor + "ms");
       
       mWaits++;
     }

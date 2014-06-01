@@ -366,8 +366,17 @@ public class ApplicationMasterService<T extends Updateable> implements
             //earlyTerminationDetected = computable.checkEarlyTerminationCondition();
             
             synchronized (masterUpdates) {
-              currentUpdateId++;
+              
+            	// we pre-do this so 
+            	currentUpdateId++;
+            	// changed around the id to inc after put
               masterUpdates.put(currentUpdateId, result);
+              
+              LOG.info("Adding master update for " + currentUpdateId + "");
+              
+              
+              
+              
               masterState = MasterState.WAITING;
             }
           }
@@ -392,6 +401,7 @@ public class ApplicationMasterService<T extends Updateable> implements
       LOG.info("Got waiting message" + ", workerId="
           + Utils.getWorkerId(workerId) + ", workerState="
           + workersState.get(workerId) + ", lastUpdate=" + lastUpdate
+          + ", currentUpdateId=" + currentUpdateId
           + ", waitingFor=" + waiting);
     }
 
@@ -405,7 +415,7 @@ public class ApplicationMasterService<T extends Updateable> implements
   public ByteBuffer fetch(WorkerId workerId, int updateId)
       throws AvroRemoteException {
     
-    LOG.debug("Received a fetch request"
+    LOG.info("Received a fetch request"
         + ", workerId=" + Utils.getWorkerId(workerId)
         + ", requestedUpdateId=" + updateId);
     
